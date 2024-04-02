@@ -26,47 +26,41 @@ try:
         with open(os.path.join(data_location, filename), 'r') as file:
             document = file.read()
             document_words = document.split('\n')
-            input_data.append(document_words)
-    
-    # print input_data
-    print('Data loaded.')
+            print(document_words)
+            # print input_data
+            print('Data loaded.')
 
-    encoding = tokenizer.batch_encode_plus(
-        input_data,
-        padding=True,
-        truncation=True,
-        return_tensors='pt',
-        add_special_tokens=True,
-        is_split_into_words=True
-    )
-    print('Encoding complete.')
+            encoding = tokenizer.__call__(
+                document_words,
+                padding=True,
+                truncation=True,
+                return_tensors='pt',
+                add_special_tokens=True,
+                is_split_into_words=True
+            )
 
-    input_ids = encoding['input_ids']
-    attention_mask = encoding['attention_mask']
-    # print(f'Input Id: {input_ids}')
-    # print(f'Attention mask: {attention_mask}')
+            print('Encoding complete.')
 
-    with torch.no_grad():
-        outputs = model(input_ids, attention_mask=attention_mask)
-        word_embeddings = outputs.last_hidden_state
+            input_ids = encoding['input_ids']
+            print(f'Input ID: {input_ids}')
+            attention_mask = encoding['attention_mask']
+            print(f'Attention mask: {attention_mask}')
 
-    print('Embeddings created.')
-    print(word_embeddings.shape)
-    
-    tokenized_text = []
+            with torch.no_grad():
+                outputs = model(input_ids, attention_mask=attention_mask)
+                word_embeddings = outputs.last_hidden_state
 
-    # for id in input_ids:
-    #     decoded_text = tokenizer.decode(id, skip_special_tokens=True)
-    #     print(f'Decoded text: {decoded_text}')
-    #     tokenized_text.append(tokenizer.tokenize(decoded_text))
-    #     print(f'Tokenized text: {tokenized_text}')
+            print('Embeddings created.')
+            decoded_text = tokenizer.decode(input_ids[0], skip_special_tokens=True)
+            print(f'Decoded Text: {decoded_text}')
+            tokenized_text = tokenizer.tokenize(decoded_text)
+            print(f'Tokenized Text: {tokenized_text}')
+            encoded_text = tokenizer.encode(' '.join(document_words), return_tensors='pt')
+            print(f'Encoded Text: {encoded_text}')
+            print(word_embeddings.shape)
 
-    for doc_embedding in word_embeddings:
-        for word_embedding in doc_embedding[0:2]:
-            print(f'Tensor: {word_embedding[0:10]}')
-            print('\n')
-
-    
+            # print(cosine_similarity(word_embeddings[0][1].reshape(-1, 1), word_embeddings[0][3].reshape(-1, 1))[0][0])
+            break    
     
     print('Done')
 
