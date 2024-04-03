@@ -58,8 +58,13 @@ try:
             encoded_text = tokenizer.encode(' '.join(document_words), return_tensors='pt')
             print(f'Encoded Text: {encoded_text}')
             print(word_embeddings.shape)
+            print(cosine_similarity(word_embeddings[0][1].reshape(1, -1), word_embeddings[0][4].reshape(1, -1))[0][0])
 
-            # print(cosine_similarity(word_embeddings[0][1].reshape(-1, 1), word_embeddings[0][3].reshape(-1, 1))[0][0])
+            for tok, i in zip(tokenized_text, word_embeddings[0]):
+                # print(tok)
+                for tok_comp, j in zip(tokenized_text, word_embeddings[0]):
+                    cos = cosine_similarity(i.reshape(1, -1), j.reshape(1, -1))[0][0]
+                    print(f'{tok}/{tok_comp} -> {cos}')
             break    
     
     print('Done')
