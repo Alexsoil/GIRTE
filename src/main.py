@@ -3,6 +3,7 @@ import torch
 import os
 import sys
 import gc
+import networkx as nx
 from transformers import BertTokenizer, BertModel
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -58,13 +59,21 @@ try:
             encoded_text = tokenizer.encode(' '.join(document_words), return_tensors='pt')
             print(f'Encoded Text: {encoded_text}')
             print(word_embeddings.shape)
-            print(cosine_similarity(word_embeddings[0][1].reshape(1, -1), word_embeddings[0][4].reshape(1, -1))[0][0])
-
+            
+            # Create graph for this document
+            G = nx.Graph()
+            # G.add_nodes_from(input_ids[0][1:-1])
+            # for node in G.nodes:
+            #     print(tokenizer.decode(node))
             for tok, i in zip(tokenized_text, word_embeddings[0]):
                 # print(tok)
                 for tok_comp, j in zip(tokenized_text, word_embeddings[0]):
+                    if G.has_node(tok_comp) is False:
+                        G.add_node(tok_comp)
                     cos = cosine_similarity(i.reshape(1, -1), j.reshape(1, -1))[0][0]
-                    print(f'{tok}/{tok_comp} -> {cos}')
+                    # G.add_edge(i,j, weight=cos)
+                    # print(f'{tok}/{tok_comp} -> {cos}')
+            print(G.nodes)
             break    
     
     print('Done')
