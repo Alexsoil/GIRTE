@@ -60,6 +60,8 @@ try:
             print(f'Encoded Text: {encoded_text}')
             print(word_embeddings.shape)
             
+            # for token, embedding in zip(tokenized_text, word_embeddings[0]):
+            #         print(token, embedding[0])
             # Create graph for this document
             G = nx.Graph()
             # G.add_nodes_from(input_ids[0][1:-1])
@@ -69,11 +71,19 @@ try:
                 # print(tok)
                 for tok_comp, j in zip(tokenized_text, word_embeddings[0]):
                     if G.has_node(tok_comp) is False:
-                        G.add_node(tok_comp)
-                    cos = cosine_similarity(i.reshape(1, -1), j.reshape(1, -1))[0][0]
+                        G.add_node(tok_comp, tensor=j)
+                    else:
+                        print(f'{tok} - {tok_comp}')
+                        print(G.nodes[tok_comp]['tensor'].shape)
+                        print(j.shape)
+                        print(torch.mean(torch.stack((G.nodes[tok_comp]['tensor'], j), dim=0)))
+                        G.nodes[tok_comp]['tensor'] = torch.mean(torch.stack((G.nodes[tok_comp]['tensor'], j)))
+                    # cos = cosine_similarity(i.reshape(1, -1), j.reshape(1, -1))[0][0]
                     # G.add_edge(i,j, weight=cos)
                     # print(f'{tok}/{tok_comp} -> {cos}')
-            print(G.nodes)
+            for node in G.nodes():
+                ten = node['tensor'][0]
+                print(f'{node} -> {ten}')
             break    
     
     print('Done')
