@@ -4,7 +4,9 @@ Graph-Based Information Retrieval with Transformer Embeddings
 ## Current Goal:
 - Load data to the system DONE
 - Use BERT to transform into embeddings DONE
-- Create Graph for each document (embeddings = Vertices, similarity = Edges)
+- Create Graph for each document (embeddings = Vertices, ~~similarity = Edges~~) DONE
+    - NOTE: words that occure multiple times are aggregated into one node and the embedding used is the mean of the embeddings of all occurances
+- Create edges based on cosine similarity
 
 ## Subgoal:
 - Graph Class (Adjacency Matrix VS Adjacency List)

@@ -9,6 +9,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 
 try:
+    # Seed for multithreading
     random_seed = 69
     random.seed(random_seed)
 
@@ -16,13 +17,13 @@ try:
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(random_seed)
     
+    # Loading pretrained Bert Models
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
     model = BertModel.from_pretrained('bert-base-uncased')
 
     data_location = os.path.join('collections', sys.argv[1], 'docs')
 
-    input_data = []
-
+    # For each document...
     for filename in os.listdir(data_location):
         with open(os.path.join(data_location, filename), 'r') as file:
             document = file.read()
@@ -31,6 +32,7 @@ try:
             # print input_data
             print('Data loaded.')
 
+            # Encode document words into tokens
             encoding = tokenizer.__call__(
                 document_words,
                 padding=True,
@@ -47,6 +49,7 @@ try:
             attention_mask = encoding['attention_mask']
             print(f'Attention mask: {attention_mask}')
 
+            # Get last layer of BERT as tensors
             with torch.no_grad():
                 outputs = model(input_ids, attention_mask=attention_mask)
                 word_embeddings = outputs.last_hidden_state
@@ -60,30 +63,36 @@ try:
             print(f'Encoded Text: {encoded_text}')
             print(word_embeddings.shape)
             
-            # for token, embedding in zip(tokenized_text, word_embeddings[0]):
-            #         print(token, embedding[0])
             # Create graph for this document
             G = nx.Graph()
-            # G.add_nodes_from(input_ids[0][1:-1])
-            # for node in G.nodes:
-            #     print(tokenizer.decode(node))
+
+            # Choose the next word
             for tok, i in zip(tokenized_text, word_embeddings[0]):
-                # print(tok)
-                for tok_comp, j in zip(tokenized_text, word_embeddings[0]):
-                    if G.has_node(tok_comp) is False:
-                        G.add_node(tok_comp, tensor=j)
-                    else:
-                        print(f'{tok} - {tok_comp}')
-                        print(G.nodes[tok_comp]['tensor'].shape)
-                        print(j.shape)
-                        print(torch.mean(torch.stack((G.nodes[tok_comp]['tensor'], j), dim=0)))
-                        G.nodes[tok_comp]['tensor'] = torch.mean(torch.stack((G.nodes[tok_comp]['tensor'], j)))
-                    # cos = cosine_similarity(i.reshape(1, -1), j.reshape(1, -1))[0][0]
-                    # G.add_edge(i,j, weight=cos)
-                    # print(f'{tok}/{tok_comp} -> {cos}')
-            for node in G.nodes():
-                ten = node['tensor'][0]
-                print(f'{node} -> {ten}')
+                
+                # if not in the graph, hold it
+                if G.has_node(tok) is False:
+                    # iterate through the rest of the words
+                    embedding_combiner = []
+                    for tok_comp, j in zip(tokenized_text, word_embeddings[0]):
+                        # if any word is equal to the one held, append them to a list
+                        if tok_comp == tok:
+                            # print('match')
+                            embedding_combiner.append(j)
+                    # when every word has been checked, take the mean of the embeddings for held word
+                    stacked_embedding = torch.stack(embedding_combiner)
+                    # Shape: [X, 768]
+                    mean_embedding = torch.mean(stacked_embedding, dim=0)
+                    # Shape: [768]
+                    G.add_node(tok, tensor=mean_embedding)
+                else:
+                    # if it already is in the graph, skip it
+                    continue
+    
+                ### TODO: Cosine similarity - Theta - Edge creation
+    
+            # Print graph nodes and first tensor element
+            for node in G.nodes(data='tensor'):
+                print(f'{node[0]} -> {node[1][0]}')
             break    
     
     print('Done')
