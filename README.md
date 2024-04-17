@@ -7,6 +7,7 @@ Graph-Based Information Retrieval with Transformer Embeddings
 - Create Graph for each document (embeddings = Vertices, ~~similarity = Edges~~) DONE
     - NOTE: words that occure multiple times are aggregated into one node and the embedding used is the mean of the embeddings of all occurances
 - Create edges based on cosine similarity
+    - NOTE: edges are created between nodes that have a cosine similarity of LESS than 1 - theta, where theta a user defined threshold
 
 ## Subgoal:
 - Graph Class (Adjacency Matrix VS Adjacency List)

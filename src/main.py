@@ -82,7 +82,7 @@ try:
                     stacked_embedding = torch.stack(embedding_combiner)
                     # Shape: [X, 768]
                     mean_embedding = torch.mean(stacked_embedding, dim=0)
-                    # Shape: [768]
+                    # Shape: [768]w
                     G.add_node(tok, tensor=mean_embedding)
                 else:
                     # if it already is in the graph, skip it
@@ -90,9 +90,28 @@ try:
     
                 ### TODO: Cosine similarity - Theta - Edge creation
     
-            # Print graph nodes and first tensor element
+            for node_outer in G.nodes(data='tensor'):
+                for node_inner in G.nodes(data='tensor'):
+                    similarity = cosine_similarity(torch.reshape(node_outer[1], (1, -1)), torch.reshape(node_inner[1], (1, -1)))
+                    # sys.argv[2] = theta
+                    if similarity[0][0] < 1 - float(sys.argv[2]):
+                        G.add_edge(node_outer[0], node_inner[0], weight=similarity[0][0])
+            
+
+            # Print nodes
+            print('Node -> 1st value of Tensor')
             for node in G.nodes(data='tensor'):
                 print(f'{node[0]} -> {node[1][0]}')
+
+            # Print edges
+            print('Edge -> Weight')
+            for edge in G.edges(data='weight'):
+                print(f'{edge[0]} -> {edge[1]} ({edge[2]})')
+
+            # Graph Information
+            num_nodes = G.number_of_nodes()
+            num_edges = G.number_of_edges()
+            print(f'Graph with {num_nodes} nodes, {num_edges}/{int((num_nodes * (num_nodes - 1)) / 2) + num_nodes} possible edges.')
             break    
     
     print('Done')
