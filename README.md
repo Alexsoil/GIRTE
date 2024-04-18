@@ -1,17 +1,16 @@
 # GIRTE
 Graph-Based Information Retrieval with Transformer Embeddings
 
-## Current Goal:
+## Current Goal
 - Load data to the system DONE
 - Use BERT to transform into embeddings DONE
 - Create Graph for each document (embeddings = Vertices, ~~similarity = Edges~~) DONE
     - NOTE: words that occure multiple times are aggregated into one node and the embedding used is the mean of the embeddings of all occurances
-- Create edges based on cosine similarity
+- Create edges based on cosine similarity DONE
     - NOTE: edges are created between nodes that have a cosine similarity of LESS than 1 - theta, where theta a user defined threshold
 
-## Subgoal:
-- Graph Class (Adjacency Matrix VS Adjacency List)
-- Adjacency list: dictionary (Vertex: {(Vertex, Weight), ...})
+## Known Issues
+- A document may not be processed due to the token size exceeding the maximum of 512. Implement windowing to resolve conflict?
 
 ## TODO list
 
