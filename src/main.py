@@ -4,6 +4,7 @@ import os
 import sys
 import pickle
 import time
+import itertools
 import networkx as nx
 from tqdm import tqdm
 from transformers import BertTokenizer, BertModel
@@ -27,9 +28,13 @@ try:
 
     data_location = os.path.join('collections', sys.argv[1], 'docs')
     model_location = os.path.join('picklejar', sys.argv[1])
-    max_iterations = int(sys.argv[3])
+
     if __debug__:
         max_iterations = 1
+    elif int(sys.argv[3]) == 0 or int(sys.argv[3] > len(os.listdir(data_location))):
+        max_iterations = len(os.listdir(data_location))
+    else:
+        max_iterations = int(sys.argv[3])
 
     # For each document...
     iterations = 0
@@ -108,14 +113,23 @@ try:
                     # if it already is in the graph, skip it
                     continue
     
-                ### TODO: Cosine similarity - Theta - Edge creation
-    
-            for node_outer in G.nodes(data='tensor'):
-                for node_inner in G.nodes(data='tensor'):
-                    similarity = cosine_similarity(torch.reshape(node_outer[1], (1, -1)), torch.reshape(node_inner[1], (1, -1)))
-                    # sys.argv[2] = theta
-                    if similarity[0][0] < 1 - float(sys.argv[2]):
-                        G.add_edge(node_outer[0], node_inner[0], weight=similarity[0][0])
+            # cache reshaped nodes
+            reshaped_nodes = {}
+            for node in G.nodes(data='tensor'):
+                reshaped_nodes[node[0]] = torch.reshape(node[1], (1, -1))
+
+            # Calculate cosine similarity and add edges
+            for node_outer, node_inner in itertools.combinations(G.nodes(data='tensor'), 2):
+                similarity = cosine_similarity(reshaped_nodes[node_outer[0]], reshaped_nodes[node_inner[0]])
+                if similarity[0][0] < 1 - float(sys.argv[2]):
+                    G.add_edge(node_outer[0], node_inner[0], weight=similarity[0][0])
+
+            # Calculate cosine similarity for each node with itself
+            for node in G.nodes(data='tensor'):
+                similarity = cosine_similarity(reshaped_nodes[node[0]], reshaped_nodes[node[0]])
+                if similarity[0][0] < 1 - float(sys.argv[2]):
+                    G.add_edge(node[0], node[0], weight=similarity[0][0])
+            
             # Graph timer end
             graph_t_end = time.time()
 
@@ -135,15 +149,12 @@ try:
             num_edges = G.number_of_edges()
             print(f'Graph with {num_nodes} nodes, {num_edges}/{int((num_nodes * (num_nodes - 1)) / 2) + num_nodes} possible edges.')
             print(f'Iteration total time: {(graph_t_end - doc_t_start):.2f}\tDocument: {(doc_t_end - doc_t_start):.2f}\tEmbedding: {(bert_t_end - bert_t_start):.2f}\tGraph: {(graph_t_end - graph_t_start):.2f}')
-            
-            file.close()
         
         if not __debug__:
             # Saving as pickle data
             os.makedirs(os.path.join(model_location), exist_ok=True)
             with open(os.path.join(model_location, filename + '.graph'), 'wb') as picklefile:
                 pickle.dump(G, picklefile)
-                file.close()
 
         # with open(os.path.join(model_location, filename), 'rb') as pickfile:
         #     abnaroz = pickle.load(pickfile)

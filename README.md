@@ -1,6 +1,12 @@
 # GIRTE
 Graph-Based Information Retrieval with Transformer Embeddings
 
+## Execution Instructions
+python3 -O src/main.py collection theta iter
+- collection: one of (baeza, CF, NPL). The collection of documents to process
+- theta: Value of theta for creation of edges. Any value in range 0.0 - 1.0.
+- iter: the number of iterations to run (effectively how many documents will be processed). 0 for all the documents in the collection.
+
 ## Current Goal
 - Load data to the system DONE
 - Use BERT to transform into embeddings DONE
