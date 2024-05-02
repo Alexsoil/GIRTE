@@ -26,12 +26,12 @@ try:
     tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
     model = BertModel.from_pretrained('bert-base-uncased')
 
-    data_location = os.path.join('collections', sys.argv[1], 'docs')
+    data_location = os.path.join('experiments', 'collections', sys.argv[1], 'docs')
     model_location = os.path.join('picklejar', sys.argv[1])
 
     if __debug__:
         max_iterations = 1
-    elif int(sys.argv[3]) == 0 or int(sys.argv[3] > len(os.listdir(data_location))):
+    elif int(sys.argv[3]) == 0 or int(sys.argv[3]) > len(os.listdir(data_location)):
         max_iterations = len(os.listdir(data_location))
     else:
         max_iterations = int(sys.argv[3])
